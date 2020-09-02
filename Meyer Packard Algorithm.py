@@ -18,7 +18,9 @@ import csv
 # In[7]:
 
 
-#setting up the required genetic parameters
+#Now setting up the population size, number of generations for which the code shall be running, rate of mutation in chromosomes, 
+#name of the stock in the form of firm’s ticker, NumReturn to return best possible number of chromosomes, 
+#number of days of the traded stock which is by default kept as a year
 random.seed(a=None)
 # Set the Constants ---------------
 PopulationSize = 200
@@ -42,6 +44,9 @@ pwd #check the directory
 
 
 #chromosomes are the most granular fighting or competing entities
+#Min is the minimum score(fitness) of chromosomes and max is the maximum. 
+#Before the addition of a new chromosome in the set it would have a previous maximum and minimum. 
+#Buy denotes the buying or longing tendency of the stocks by the user and lastly score denotes the fitness score of the chromosome.
 
 class Chromosome():
     def __init__(self, min=None, max=None, prev_min=None, prev_max=None, buy=None, score =None):
@@ -52,6 +57,8 @@ class Chromosome():
         self.buy = buy
         self.score = score
 #defining funtion to mutate the chromosomes 
+#Mutation is done by introducing toChange variable, which will mutate a maximum of 5 chromosomes
+#in an iteration with mean and standard distribution as 0,0.15 respectively
     def mutate(self):
         mu, sigma = 0, 0.15 # mean and standard deviation
         s = numpy.random.normal(mu, sigma, 1)#edit-1
@@ -72,6 +79,10 @@ class Chromosome():
         if self.prev_min > self.prev_max:
             self.prev_min, self.prev_max = self.prev_max, self.prev_min
 #To generate training data and train the algorithm
+#Lists of population, next generation chromosomes, dayChange for the price change of a stock on a day 
+#and next day change is change on the very next day, profit is the positive change incurred while buying 
+#the stocks if the change is positively increasing day to day. 
+
 class TrainingData(object):
     population = []
     nextGeneration = []
@@ -85,7 +96,9 @@ class TrainingData(object):
         self.mRate = mRate
         self.mChange= mChange
 
-    #Generate Data from chosen stock
+#Generate Data from chosen stock
+#Here in the below code, the following generates the data from yahoo finance to be specific
+#and leaves behind the dividend column for the analysis
     def generateData(self):
         global DataSize
         
@@ -125,7 +138,9 @@ class TrainingData(object):
         DataSize = len(self.dayChange)
         file.close()
 
-    #Initializes the population of random chromosomes
+#Initializes the population of random chromosomes
+#The population of the chromosomes are from a random uniform normal distribution with mean 0 and standard deviation 0.15. 
+#Given the code above, initializes the population
     def populationInit(self):
 
         #Create N Chromosomes with N being the Population Size
@@ -149,6 +164,11 @@ class TrainingData(object):
             self.population.append(temp)
 
     #Determines score for each chromosome in self.population
+#The difficult task was to decide what could be the fitness function or the score, 
+#is calculated such as the change in present day prices is more than the previous minimum, 
+#present day change is less than previous maximum also if the next day change is more than minimum and less than maximum of present day.
+#So, if these conditions satisfy and if the buy has its value equal to 1, then it would add profit into the score otherwise subtract 
+#from it and if neither of these cases meet then the score is given as -5000 to start with.
     def fitnessFunction(self):
         for i in range(len(self.population)):
             match = False
@@ -175,6 +195,10 @@ class TrainingData(object):
             #print(self.population[i].score)
 
     #Weighted random choice selection
+#The above function calculates the fitness value of a population and then randomly selects a value(pick) from uniform range of (0,max(score)),
+#where max(score is the score of the total chromosomes combined in the population and in the next loop it selects a population’s score and adds
+#it to variable ‘current’ and if currency exceeds the ‘pick’, then we go onto the next generation and append the current population in the nextGeneration[ ]
+
     def weighted_random_choice(self):
         self.fitnessFunction()
         max = self.population[0].score
@@ -197,6 +221,7 @@ class TrainingData(object):
                 i+=1
 
     #Uniform Crossover
+#The below function performs Uniform crossover in the current population and swaps if the child has a better score than the previous minimum.
     def uniformCross(self, z):
         children = []
         for i in range(PopulationSize-len(self.nextGeneration)):
@@ -241,6 +266,9 @@ class TrainingData(object):
             children.append(child)
 
         #Mutation
+	#Performing mutation in the population randomly and the child is added in the population, and after performing competition 
+	#on the basis of fitness function the required number of population is kept in the next generation and then the population’s 
+	#chromosomes are sorted on the basis of their scores.
         for i in range(len(children)):
             if random.randint(0,999) % 100 <= z:
                 children[i].mutate()
@@ -252,6 +280,10 @@ class TrainingData(object):
         self.population.sort(key=operator.attrgetter('score'))
 
     #Print the scores of the chromosomes
+#The print chromosomes function prints all the chromosomes and along with selects the top NumReturn values from it because 
+#they are already sorted according to their scores.
+#And gives suggestions whether to long(buy) the stock or to short(sell) it.
+
     def printChromosomes(self):
         buyRec = []
         shortRec = []
@@ -344,11 +376,11 @@ print (get_historical_data('race', 15))
 
 # In[ ]:
 
-
+'''
 Dates     6th march      7th      8th          9th      10th    11th          12th          13th     14th    15th          16th      17th          18th       19th      20th      21st      22nd         23rd          24th(19th May)
 tesla:   -690(long)     605.39   640.2        595      772.28  710.8(Short) 737.61(Long)  795.64   790.17  855.9          755       701           776.5     777.21    793.77    827.0     780.0        790.35        827.78
 ferrari: +152.27(short) 141.17   145.89(Long) 143.93   162.89  158(Short)   157.56(Long)  159.53   159     156.37(Short)  153.69    154.26(Long) 158.33     157.89    158.33    160.14    151.2(Short)  157.52(Long) 169.99                    
-
+'''
 
 # In[ ]:
 
