@@ -7,5 +7,4 @@ Our prediction is based on the work done by Thomas Meyer and Norman Packard whic
 
 ## Goals
 -To predict the stock price movement and in which stocks to bet on
-
 -To determine the time when a stock needs to be longed or shorted
